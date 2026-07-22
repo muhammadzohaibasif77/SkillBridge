@@ -73,11 +73,11 @@ const mentorsData = [
   }
 ];
 
-function App() {
+export default function App() {
   // Navigation States: 'login' | 'join-free' | 'home'
   const [appStage, setAppStage] = useState('login'); 
   
-  // Registration Form States (Added password)
+  // Registration Form States
   const [userData, setUserData] = useState({ name: '', email: '', phone: '', password: '' });
   
   // Clean Alert Replacement Error State
@@ -132,10 +132,10 @@ function App() {
     }, 100);
   };
 
-  // --- SUBMIT HANDLER WITH VALIDATIONS & NO ALERTS ---
+  // --- SUBMIT HANDLER WITH DYNAMIC BACKEND SUPPORT ---
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg(''); // Reset error matrix
+    setErrorMsg(''); // Reset error message
     
     // 1. Email Validation Check (@ missing)
     if (!userData.email.includes('@')) {
@@ -151,7 +151,10 @@ function App() {
 
     if (userData.name && userData.email && userData.phone && userData.password) {
       try {
-        const response = await fetch('http://localhost:5000/api/register', {
+        // Uses VITE_API_BASE_URL if configured on Vercel, else falls back to localhost
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+        const response = await fetch(`${API_BASE_URL}/api/register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -169,7 +172,7 @@ function App() {
         }
       } catch (error) {
         console.error("Connection matrix failed:", error);
-        setErrorMsg("Unable to connect to the backend server (Port 5000)! Please ensure your Express server is active and running.");
+        setErrorMsg("Unable to connect to the backend server! Please check your network or backend deployment.");
       }
     }
   };
@@ -220,7 +223,7 @@ function App() {
             <div className="space-y-1.5">
               <label className="text-xs font-black uppercase tracking-wider text-slate-400">Email Address</label>
               <input 
-                type="text" // Kept as text to manually test validation triggers smoothly
+                type="text" 
                 name="email"
                 value={userData.email}
                 onChange={handleInputChange}
@@ -242,7 +245,6 @@ function App() {
               />
             </div>
             
-            {/* NEW PASSWORD SECTION */}
             <div className="space-y-1.5">
               <label className="text-xs font-black uppercase tracking-wider text-slate-400">Password</label>
               <input 
@@ -256,7 +258,6 @@ function App() {
               />
             </div>
 
-            {/* INTEGRATED ERROR PANEL VALUE */}
             {errorMsg && (
               <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-xs p-3.5 rounded-xl font-medium text-center leading-relaxed transition-all">
                 {errorMsg}
@@ -317,7 +318,7 @@ function App() {
   return (
     <div className="w-full min-h-screen bg-[#0b1329] flex flex-col antialiased text-slate-200 font-sans selection:bg-sky-500/30">
       
-      {/* --- NAVBAR --- */}
+      {/* NAVBAR */}
       <nav className="bg-[#0b1329]/95 border-b border-slate-800/80 sticky top-0 z-50 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
@@ -332,7 +333,7 @@ function App() {
               </span>
             </div>
 
-            {/* Sliding Capsule Mechanism */}
+            {/* Dynamic Capsule Selector */}
             <div className="hidden md:flex items-center relative bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 isolate">
               <div 
                 className={`absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-6px)] bg-gradient-to-r from-sky-400 to-blue-500 rounded-xl transition-transform duration-300 ease-out -z-10 ${
@@ -362,7 +363,7 @@ function App() {
             {/* User Profile Frame */}
             <div className="flex items-center gap-3">
               <div className="hidden sm:block text-right">
-                <span className="block text-xs font-black text-slate-200">{userData.name}</span>
+                <span className="block text-xs font-black text-slate-200">{userData.name || "User"}</span>
                 <span className="block text-[10px] text-emerald-400 font-medium">Verified Account</span>
               </div>
               <button 
@@ -377,7 +378,7 @@ function App() {
         </div>
       </nav>
 
-      {/* --- HERO BANNER --- */}
+      {/* HERO BANNER */}
       <header className="w-full pt-20 pb-24 border-b border-slate-800/40 bg-gradient-to-b from-[#0b1329] to-[#1c2541]/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
           
@@ -421,7 +422,7 @@ function App() {
         </div>
       </header>
 
-      {/* --- COMPONENT MAIN SEGMENTS --- */}
+      {/* MAIN CONTENT AREA */}
       <main id="main-hub-content" className="w-full bg-[#0b1329] py-20 flex-grow scroll-mt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -454,7 +455,7 @@ function App() {
             </div>
           )}
 
-          {/* TAB 2: ACTIVE PEER DATASET */}
+          {/* TAB 2: MENTORS DATASET */}
           {activeTab === 'mentors' && (
             <div className="space-y-16 transition-all duration-300">
               <div className="text-center space-y-2">
@@ -462,7 +463,7 @@ function App() {
                 <p className="text-slate-500 text-sm">On-demand structural profile integrations matching filter contexts</p>
               </div>
 
-              {/* Dynamic Filtering Frame */}
+              {/* Dynamic Search Bar */}
               <div className="max-w-xl mx-auto">
                 <div className="relative w-full">
                   <input 
@@ -488,7 +489,7 @@ function App() {
                 </div>
               </div>
 
-              {/* Mentors Layout Engine */}
+              {/* Mentors Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredMentors.map((mentor) => (
                   <div key={mentor.id} className="bg-slate-800 rounded-[32px] border border-slate-700/60 p-7 flex flex-col justify-between shadow-2xl hover:border-sky-500/30 hover:-translate-y-1 transition-all duration-300">
@@ -539,7 +540,7 @@ function App() {
         </div>
       </main>
 
-      {/* --- INFRASTRUCTURE PROCESS FLOW --- */}
+      {/* HOW IT WORKS SECTION */}
       <section id="how" className="w-full bg-[#1c2541]/20 border-t border-slate-800/80 py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-16">
           <div className="space-y-3">
@@ -571,7 +572,7 @@ function App() {
         </div>
       </section>
 
-      {/* --- FOOTER FRAME --- */}
+      {/* FOOTER */}
       <footer className="w-full bg-[#0b1329] border-t border-slate-800/60 py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <p className="text-xs text-slate-500 font-medium">&copy; 2026 SkillBridge Engine Ecosystem. All rights reserved.</p>
@@ -582,7 +583,7 @@ function App() {
         </div>
       </footer>
 
-      {/* --- SCHEDULING INTERACTION COMPONENT (MODAL) --- */}
+      {/* MODAL / SCHEDULING INTERACTION */}
       {selectedMentor && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="bg-slate-800 border border-slate-700/80 w-full max-w-md rounded-[32px] p-6 shadow-2xl space-y-6 relative text-left">
@@ -597,7 +598,9 @@ function App() {
             </div>
 
             {bookingSuccess ? (
-              <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl p-4 text-center text-sm font-bold animate-pulse">✓ Booking Request Submitted Successfully!</div>
+              <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl p-4 text-center text-sm font-bold animate-pulse">
+                ✓ Booking Request Submitted Successfully!
+              </div>
             ) : (
               <form onSubmit={handleBookingSubmit} className="space-y-4">
                 <div className="space-y-1.5">
@@ -612,11 +615,12 @@ function App() {
                     <option value="evening">Evening (06:00 PM - 08:00 PM)</option>
                   </select>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-black uppercase tracking-wider text-slate-400">Core Goal / Topic Focus</label>
-                  <textarea required rows="2" placeholder="Describe what structural concepts you want to analyze..." className="w-full bg-[#0b1329] border border-slate-700 rounded-xl py-3 px-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-sky-500 resize-none"></textarea>
-                </div>
-                <button type="submit" className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-100 font-black py-4 rounded-xl transition-all border-0 cursor-pointer text-xs uppercase tracking-widest shadow-md">Confirm & Request Session</button>
+                <button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 text-slate-950 font-black py-3.5 rounded-xl transition-all border-0 cursor-pointer text-xs uppercase tracking-widest shadow-xl shadow-sky-500/10 mt-4"
+                >
+                  Confirm Booking
+                </button>
               </form>
             )}
           </div>
@@ -626,5 +630,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
