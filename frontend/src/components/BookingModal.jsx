@@ -4,11 +4,46 @@ const BookingModal = ({ mentor, onClose }) => {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert(`Booking Request Sent to ${mentor.name} for ${date} at ${time}!`);
-    onClose(); // Modal band karne ke liye
+    setLoading(true);
+    setError("");
+
+    // Live env variable se URL uthayega, warna fallback localhost
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/bookings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mentorId: mentor._id || mentor.id,
+          mentorName: mentor.name,
+          date,
+          time,
+          note,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to submit booking");
+      }
+
+      alert(`Booking Request Sent to ${mentor.name} for ${date} at ${time}!`);
+      onClose(); // Close modal on success
+    } catch (err) {
+      console.error("Booking Error:", err);
+      setError(err.message || "Unable to connect to server. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,6 +68,13 @@ const BookingModal = ({ mentor, onClose }) => {
           <h2 className="text-xl font-bold text-gray-800">Book a Session</h2>
           <p className="text-sm text-gray-500">with <span className="font-semibold text-indigo-600">{mentor.name}</span></p>
         </div>
+
+        {/* Error Message Display */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl text-center">
+            {error}
+          </div>
+        )}
 
         {/* Booking Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -71,9 +113,10 @@ const BookingModal = ({ mentor, onClose }) => {
 
           <button 
             type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm py-3 px-4 rounded-xl transition-colors duration-200 cursor-pointer shadow-md shadow-indigo-100"
+            disabled={loading}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm py-3 px-4 rounded-xl transition-colors duration-200 cursor-pointer shadow-md shadow-indigo-100 disabled:opacity-50"
           >
-            Confirm Booking Request
+            {loading ? "Sending Request..." : "Confirm Booking Request"}
           </button>
         </form>
       </div>
